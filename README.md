@@ -66,8 +66,8 @@ HORAS_META_DIA=7
 | `CLOCKIFY_API_KEY` | texto | É a chave que autentica todas as chamadas ao Clockify (header `X-Api-Key`). Nunca é impressa nem aparece em mensagens de erro. |
 | `CLOCKIFY_WORKSPACE_ID` | texto | Diz qual workspace consultar: é usada para buscar o nome do workspace e as entradas de horas. |
 | `FATURAMENTO_DIA_INICIAL` | inteiro de 1 a 28 | É o dia em que cada período de faturamento começa. O período termina no dia anterior, no mês seguinte. O limite de 28 garante que a regra funcione em fevereiro. Com `1`, o período coincide com o mês do calendário. |
-| `HORAS_MAX_MES` | número > 0 | É o teto de horas do período. Aparece na linha **Máximo** do resumo e decide a cor do **Realizado** (seção 6.5). |
-| `HORAS_META_DIA` | número > 0, decimal com ponto (`7.5` = 7h30) | É a meta de horas por dia útil. Decide a cor da barra e do total de cada dia (seções 6.3 e 6.4) e é a base do cálculo da **Meta** do período (seção 6.5). |
+| `HORAS_MAX_MES` | número > 0 | É o teto de horas do período. Aparece na linha **Máximo** do resumo e, quando ultrapassado, deixa o **Realizado** amarelo (seção 6.5). |
+| `HORAS_META_DIA` | número > 0, decimal com ponto (`7.5` = 7h30) | É a meta de horas por dia útil. Decide a cor da barra e do total de cada dia (seções 6.3 e 6.4) e é a base do cálculo da **Meta** e do **Esperado** (seção 6.5). |
 
 Se alguma variável estiver ausente ou inválida, o script para antes de chamar qualquer API, com uma mensagem dizendo qual variável corrigir.
 
@@ -122,7 +122,9 @@ Mês:        Outubro/2026 (26/09/2026 a 25/10/2026)
 
 Máximo:     168:00
 Meta:       133:00
-Realizado:  019:00
+Esperado:   035:00
+Realizado:  029:09
+Diferença:  005:51
 
 [A] mês anterior   [D] próximo mês   [Q] sair
 ```
@@ -190,9 +192,13 @@ O texto `HH:MM` do dia segue a mesma comparação com a meta diária:
 |---|---|---|
 | **Máximo** | `HORAS_MAX_MES` | sem cor |
 | **Meta** | quantidade de dias úteis do **período inteiro** (do dia inicial ao dia final, mesmo no período atual) × `HORAS_META_DIA` | sem cor |
-| **Realizado** | soma das horas e minutos lançados do **dia inicial** do período até **hoje** (no período atual) ou até o **dia final** (em períodos passados). Horas lançadas em dias não úteis também contam. | **amarelo** se passar de `HORAS_MAX_MES`; sem cor caso contrário |
+| **Esperado** | quantidade de dias úteis do dia inicial do período até **ontem** × `HORAS_META_DIA`. É quanto já deveria ter sido trabalhado. Em períodos passados, todos os dias já passaram, então o Esperado é igual à Meta. | sem cor |
+| **Realizado** | soma das horas e minutos lançados do **dia inicial** do período até **hoje** (no período atual) ou até o **dia final** (em períodos passados). Horas lançadas em dias não úteis também contam. | **amarelo** se passar de `HORAS_MAX_MES` (essa regra tem prioridade); senão **verde** se for maior ou igual ao Esperado e **vermelho** se for menor |
+| **Diferença** | Esperado − Realizado. Positiva = horas que faltam; negativa (com `-` na frente) = horas trabalhadas a mais. | **vermelha** se maior que zero; **verde** se zero ou negativa |
 
 Todos os valores aparecem no formato `HHH:MM`.
+
+Exemplo do Esperado: em 03/10/2026 (sábado), os dias úteis já passados do período são 28/09 a 02/10, ou seja, 5 dias × 7h = **035:00**. Com 029:09 realizadas, a Diferença é **005:51** (vermelha).
 
 Exemplo: o período de 26/09/2026 a 25/10/2026 tem 20 dias de segunda a sexta, e um deles é feriado (12/10, Nossa Senhora Aparecida). Sobram **19 dias úteis**, então a Meta é 19 × 7h = **133:00**.
 
