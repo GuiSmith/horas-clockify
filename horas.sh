@@ -62,6 +62,16 @@ format_hhmm() {
   printf '%0*d:%02d' "$hour_digits" $((minutes / 60)) $((minutes % 60))
 }
 
+# Como format_hhmm, mas aceita valores negativos (prefixo "-").
+format_signed_hhmm() {
+  local minutes=$1 hour_digits=${2:-2}
+  if ((minutes < 0)); then
+    printf -- '-%s' "$(format_hhmm $((-minutes)) "$hour_digits")"
+  else
+    format_hhmm "$minutes" "$hour_digits"
+  fi
+}
+
 # Repete um caractere N vezes.
 repeat_char() {
   local char=$1 count=$2 spaces
@@ -373,14 +383,29 @@ render_day() {
     "$total_color" "$(format_hhmm "$minutes")" "$RESET" "$marker"
 }
 
+# Realizado: amarelo acima do máximo; senão verde/vermelho contra o esperado.
+# Diferença (esperado - realizado): vermelha se ainda falta hora, verde se não.
 render_summary() {
-  local goal_minutes=$1 worked_minutes=$2 worked_color=''
+  local goal_minutes=$1 expected_minutes=$2 worked_minutes=$3 worked_color difference_color
+  local difference=$((expected_minutes - worked_minutes))
   if ((worked_minutes > MAX_MONTH_MINUTES)); then
     worked_color=$YELLOW
+  elif ((worked_minutes >= expected_minutes)); then
+    worked_color=$GREEN
+  else
+    worked_color=$RED
   fi
+  if ((difference > 0)); then
+    difference_color=$RED
+  else
+    difference_color=$GREEN
+  fi
+
   printf '\n%sMáximo:%s     %s\n' "$BOLD" "$RESET" "$(format_hhmm "$MAX_MONTH_MINUTES" 3)"
   printf '%sMeta:%s       %s\n' "$BOLD" "$RESET" "$(format_hhmm "$goal_minutes" 3)"
+  printf '%sEsperado:%s   %s\n' "$BOLD" "$RESET" "$(format_hhmm "$expected_minutes" 3)"
   printf '%sRealizado:%s  %s%s%s\n' "$BOLD" "$RESET" "$worked_color" "$(format_hhmm "$worked_minutes" 3)" "$RESET"
+  printf '%sDiferença:%s  %s%s%s\n' "$BOLD" "$RESET" "$difference_color" "$(format_signed_hhmm "$difference" 3)" "$RESET"
 }
 
 render_footer() {
@@ -404,10 +429,14 @@ render_period() {
 
   local -a rows=()
   local date weekday seconds minutes
-  local business_days=0 worked_minutes=0 bar_width=$MIN_BAR_WIDTH length
+  # Esperado conta os dias úteis até ontem; Meta conta o período inteiro.
+  local business_days=0 elapsed_business_days=0 worked_minutes=0 bar_width=$MIN_BAR_WIDTH length
   while read -r date weekday seconds; do
     if is_business_day "$date" "$weekday"; then
       business_days=$((business_days + 1))
+      if [[ $date < $today ]]; then
+        elapsed_business_days=$((elapsed_business_days + 1))
+      fi
     fi
     if [[ $date > $today ]]; then
       continue
@@ -425,7 +454,8 @@ render_period() {
     read -r date weekday minutes <<<"$row"
     render_day "$date" "$weekday" "$minutes" "$bar_width"
   done
-  render_summary $((business_days * DAILY_GOAL_MINUTES)) "$worked_minutes"
+  render_summary $((business_days * DAILY_GOAL_MINUTES)) \
+    $((elapsed_business_days * DAILY_GOAL_MINUTES)) "$worked_minutes"
   render_footer "$month" "$current_month" "$interactive"
 }
 
