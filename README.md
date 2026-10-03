@@ -6,7 +6,8 @@ Script em Bash que consulta a API do Clockify e mostra, no terminal, um relatór
 
 ```bash
 cp .env.example .env   # e preencha os valores (seção 3)
-./horas.sh
+./setup.sh             # torna o script executável e cria o comando ~/.local/bin/horas
+horas                  # ou ./horas.sh
 ```
 
 Teclas: **A** mês anterior · **D** próximo mês · **Q** sair. Se a saída for redirecionada (ex.: `./horas.sh > relatorio.txt`), o script imprime o mês atual sem cores e encerra.
