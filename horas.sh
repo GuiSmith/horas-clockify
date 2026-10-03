@@ -7,7 +7,8 @@ set -euo pipefail
 # Faz erros dentro de $(...) também encerrarem o script.
 shopt -s inherit_errexit
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve symlinks (ex.: ~/.local/bin/horas) para achar o .env ao lado do script real.
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 readonly SCRIPT_DIR
 readonly ENV_FILE="$SCRIPT_DIR/.env"
 
