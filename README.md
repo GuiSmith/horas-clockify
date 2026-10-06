@@ -193,13 +193,13 @@ O texto `HH:MM` do dia segue a mesma comparação com a meta diária:
 |---|---|---|
 | **Máximo** | `HORAS_MAX_MES` | sem cor |
 | **Meta** | quantidade de dias úteis do **período inteiro** (do dia inicial ao dia final, mesmo no período atual) × `HORAS_META_DIA` | sem cor |
-| **Esperado** | quantidade de dias úteis do dia inicial do período até **ontem** × `HORAS_META_DIA`. É quanto já deveria ter sido trabalhado. Em períodos passados, todos os dias já passaram, então o Esperado é igual à Meta. | sem cor |
+| **Esperado** | quantidade de dias úteis do dia inicial do período até **hoje** (inclusive) × `HORAS_META_DIA`. É quanto deveria estar trabalhado ao fim do dia de hoje, no mesmo intervalo do Realizado. Em períodos passados, todos os dias já passaram, então o Esperado é igual à Meta. | sem cor |
 | **Realizado** | soma das horas e minutos lançados do **dia inicial** do período até **hoje** (no período atual) ou até o **dia final** (em períodos passados). Horas lançadas em dias não úteis também contam. | **amarelo** se passar de `HORAS_MAX_MES` (essa regra tem prioridade); senão **verde** se for maior ou igual ao Esperado e **vermelho** se for menor |
 | **Diferença** | Esperado − Realizado. Positiva = horas que faltam; negativa (com `-` na frente) = horas trabalhadas a mais. | **vermelha** se maior que zero; **verde** se zero ou negativa |
 
 Todos os valores aparecem no formato `HHH:MM`.
 
-Exemplo do Esperado: em 03/10/2026 (sábado), os dias úteis já passados do período são 28/09 a 02/10, ou seja, 5 dias × 7h = **035:00**. Com 029:09 realizadas, a Diferença é **005:51** (vermelha).
+Exemplo do Esperado: em 03/10/2026 (sábado), os dias úteis do período até hoje são 28/09 a 02/10, ou seja, 5 dias × 7h = **035:00**. Com 029:09 realizadas, a Diferença é **005:51** (vermelha). Em 05/10/2026 (segunda), o próprio dia já conta: 6 dias × 7h = **042:00**.
 
 Exemplo: o período de 26/09/2026 a 25/10/2026 tem 20 dias de segunda a sexta, e um deles é feriado (12/10, Nossa Senhora Aparecida). Sobram **19 dias úteis**, então a Meta é 19 × 7h = **133:00**.
 
