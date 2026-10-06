@@ -430,12 +430,12 @@ render_period() {
 
   local -a rows=()
   local date weekday seconds minutes
-  # Esperado conta os dias úteis até ontem; Meta conta o período inteiro.
+  # Esperado conta os dias úteis até hoje, como o Realizado; Meta conta o período inteiro.
   local business_days=0 elapsed_business_days=0 worked_minutes=0 bar_width=$MIN_BAR_WIDTH length
   while read -r date weekday seconds; do
     if is_business_day "$date" "$weekday"; then
       business_days=$((business_days + 1))
-      if [[ $date < $today ]]; then
+      if [[ ! $date > $today ]]; then
         elapsed_business_days=$((elapsed_business_days + 1))
       fi
     fi
